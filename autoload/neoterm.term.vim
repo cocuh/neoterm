@@ -13,6 +13,8 @@ function! g:neoterm.term.new(handlers)
   let instance.buffer_id = bufnr("")
   let g:neoterm.instances[instance.id] = instance
 
+  let b:term_title = 'neoterm-'.id
+
   return instance
 endfunction
 
@@ -37,6 +39,13 @@ function! g:neoterm.term.focus()
   exec bufwinnr(self.buffer_id) . "wincmd w"
 endfunction
 
+function! g:neoterm.term.normal(cmd)
+  let win_id = exists('*win_getid') ? win_getid() : 0
+  call self.focus()
+  exec "normal ".a:cmd
+  call win_gotoid(win_id)
+endfunction
+
 function! g:neoterm.term.close()
   if bufwinnr(self.buffer_id) > 0
     if g:neoterm_keep_term_open
@@ -48,11 +57,14 @@ function! g:neoterm.term.close()
 endfunction
 
 function! g:neoterm.term.do(command)
-  call self.exec([a:command, ""])
+  call self.exec([a:command, g:neoterm_eof])
 endfunction
 
 function! g:neoterm.term.exec(command)
   call jobsend(self.job_id, a:command)
+  if g:neoterm_autoscroll
+    call self.normal('G')
+  end
 endfunction
 
 function! g:neoterm.term.clear()
@@ -88,12 +100,10 @@ function! g:neoterm.term.destroy()
     call remove(g:neoterm.repl, "instance_id")
   end
 
-  if has_key(g:neoterm, "test") && get(g:neoterm.test, "instance_id") == self.id
-    call remove(g:neoterm.test, "instance_id")
-  end
-
   if has_key(g:neoterm.instances, self.id)
     call self.close()
     call remove(g:neoterm.instances, self.id)
   end
+
+  let g:neoterm.last_id = get(keys(g:neoterm.instances), -1)
 endfunction

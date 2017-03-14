@@ -16,18 +16,19 @@ endfunction
 
 function! neoterm#repl#handlers()
   return  {
-        \   "on_exit": function("s:test_result_handler")
+        \   "on_exit": function("s:repl_result_handler")
         \ }
 endfunction
 
 
-function! s:test_result_handler(job_id, data, event)
+function! s:repl_result_handler(job_id, data, event)
   let g:neoterm.repl.loaded = 0
 endfunction
 
 function! neoterm#repl#term(id)
   if has_key(g:neoterm.instances, a:id)
     let g:neoterm.repl.instance_id = a:id
+    let g:neoterm.repl.loaded = 1
   else
     echoe "There is no ".a:id." term."
   end
@@ -39,29 +40,29 @@ function! neoterm#repl#set(value)
 endfunction
 
 " Internal: Executes the current selection within a REPL.
-function! neoterm#repl#selection(...)
-  if getpos("'>") != [0, 0, 0, 0]
-    let [lnum1, col1] = getpos("'<")[1:2]
-    let [lnum2, col2] = getpos("'>")[1:2]
-    call setpos("'>", [0, 0, 0, 0])
-    call setpos("'<", [0, 0, 0, 0])
+function! neoterm#repl#selection()
+  let [lnum1, col1] = getpos("'<")[1:2]
+  let [lnum2, col2] = getpos("'>")[1:2]
+  let lines = getline(lnum1, lnum2)
+  let lines[-1] = lines[-1][:col2 - 1]
+  let lines[0] = lines[0][col1 - 1:]
+  call g:neoterm.repl.exec(lines)
+endfunction
 
-    let lines = getline(lnum1, lnum2)
-    let lines[-1] = lines[-1][:col2 - 1]
-    let lines[0] = lines[0][col1 - 1:]
-  else
-    let lines = getline(a:1, a:2)
-  end
-
+" Internal: Executes the current line within a REPL.
+function! neoterm#repl#line(...)
+  let lines = getline(a:1, a:2)
   call g:neoterm.repl.exec(lines)
 endfunction
 
 " Internal: Open the REPL, if needed, and executes the given command.
 function! g:neoterm.repl.exec(command)
   if !self.loaded
-    call self.instance().do(g:neoterm_repl_command)
+    if !empty(get(g:, "neoterm_repl_command", ""))
+      call self.instance().do(g:neoterm_repl_command)
+    end
     let self.loaded = 1
   end
 
-  call g:neoterm.repl.instance().exec(add(a:command, ""))
+  call g:neoterm.repl.instance().exec(add(a:command, g:neoterm_eof))
 endfunction
