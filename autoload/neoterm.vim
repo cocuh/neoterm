@@ -31,10 +31,18 @@ function! neoterm#open()
   end
 endfunction
 
-function! neoterm#close()
+function! neoterm#close(...)
+  let force = get(a:, "1", 0)
   if g:neoterm.has_any()
-    call g:neoterm.last().close()
+    call g:neoterm.last().close(force)
   end
+endfunction
+
+function! neoterm#closeAll(...)
+  let force = get(a:, "1", 0)
+  for instance in values(g:neoterm.instances)
+    call instance.close(force)
+  endfor
 endfunction
 
 " Public: Executes a command on terminal.
@@ -47,7 +55,10 @@ endfunction
 " Internal: Loads a terminal, if it is not loaded, and execute a list of
 " commands.
 function! neoterm#exec(command)
-  call neoterm#open()
+  if !g:neoterm.has_any() || g:neoterm_open_in_all_tabs
+    call neoterm#open()
+  end
+
   call g:neoterm.last().exec(a:command)
 endfunction
 
@@ -87,6 +98,10 @@ endfunction
 
 function! neoterm#normal(cmd)
   silent call g:neoterm.last().normal(a:cmd)
+endfunction
+
+function! neoterm#vim_exec(cmd)
+  silent call g:neoterm.last().vim_exec(a:cmd)
 endfunction
 
 " Internal: Kill current process on neoterm. (Send a <C-c>)

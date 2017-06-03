@@ -83,11 +83,20 @@ Sends the current selection to a REPL.
 
 Opens a new, or the current, neoterm terminal split.
 
-:Tclose								       *:Tclose*
+:Tclose[!]							       *:Tclose*
 
 Closes, or hides, the current neoterm terminal split. To change if the
 terminal will be kept in background you need to change
-|g:neoterm_keep_term_open|
+|g:neoterm_keep_term_open|.
+
+When the [!] is included the |g:neoterm_keep_term_open| is ignored and the
+neoterm buffer is deleted.
+
+:TcloseAll[!]                  				            *:TcloseAll*
+
+Call |:Tclose| for each neoterm instance.
+
+When the [!] is included `:Tclose!`(with the bang) is called.
 
 :Ttoggle							      *:Ttoggle*
 
@@ -125,10 +134,18 @@ Default value: `''`.
 
 Set the neoterm split position. Accepted values: `horizontal` and `vertical`.
 Default value: `horizontal`.
+
 							*g:neoterm_automap_keys*
 
 Key combination to be used with |:Tmap|.
 Default value: `,tt`.
+
+                                                    *g:neoterm_open_in_all_tabs*
+
+When set, neoterm terminal will open a window on each tab it's called. Set it
+to `0` if you don't want to open the new term on each tab.
+Default value: `1`.
+
 						      *g:neoterm_keep_term_open*
 
 When set, neoterm terminal will be kept running in background.
@@ -186,6 +203,13 @@ Default value: ""
 
 When set to `1` neoterm will scroll to the end of its buffer after running any
 command.
+Default value: `0`
+
+							   *g:neoterm_fixedsize*
+
+When set to `1` neoterm will fix the height and width of its window with
+`winfixheight` and `winfixwidth`. This option only works when the
+|g:neoterm_size| is set.
 Default value: `0`
 
 ===============================================================================
